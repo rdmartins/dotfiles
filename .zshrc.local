@@ -1,0 +1,43 @@
+eval `dircolors /home/rdmartins/.dir_colors/dircolors`
+alias dotfiles="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
+alias emerge-update="sudo emerge --alert --ask --deep --newuse --update @world"
+alias emerge="sudo emerge --alert --ask"
+alias rm="trash"
+
+function searchKernelConfig() grep -R --include=Makefile "\b$1\.o\b"
+function mkkernel() {
+  OD=$(pwd)
+  cd /usr/src/linux &&
+  sudo make -j7 -l7 &&
+  sudo make install &&
+  sudo make modules_prepare &&
+  sudo emerge @module-rebuild &&
+  sudo make modules_install &&
+  sudo dracut -f --kver $(eselect kernel show | awk -F "-" '/linux/{ print substr($0,index($0, $2)) }') &&
+  sudo /home/rdmartins/.cargo/bin/systemd-boot-gen -r
+  cd $OD
+}
+function litekernel() {
+  OD=$(pwd)
+  cd /usr/src/linux &&
+  sudo make -j7 -l7 &&
+  sudo make install &&
+  sudo make modules_prepare &&
+  sudo make modules_install &&
+  sudo dracut -f --kver $(eselect kernel show | awk -F "-" '/linux/{ print substr($0,index($0, $2)) }') &&
+  sudo /home/rdmartins/.cargo/bin/systemd-boot-gen -r
+  cd $OD
+}
+
+export NVM_DIR="$HOME/.nvm"
+#export ANDROID_SDK="$HOME/android-sdk"
+
+path=(
+  /home/rdmartins/.local/bin
+  #$ANDROID_SDK/cmdline-tools/latest/bin
+  #$ANDROID_SDK/platform-tools
+  $path
+)
+
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
